@@ -1,60 +1,82 @@
 import auth
 
 
-class Authorizor:
-    def __init__(self, authenticator):
-        self.authenticator = authenticator
-        self.permissions = {}
+class Editor:
+    def __init__(self):
+        self.username = None
+        self.menu_map = {
+            "login": self.login,
+            "test": self.test,
+            "change": self.change,
+            "quit": self.quit
+        }
 
-    def add_permission(self, perm_name):
-        '''crea permisos a los que se pueden agregar usuarios
-        user --- > permiso'''
-
-        try:
-            perm_set = self.add_permissions[perm_name]
-        except KeyError:
-            self.add_permissions[perm_name] = set()
-        else:
-            raise PermissionError("Permission Exists")
-
-    def permit_user(self, perm_name, username):
-        ''' Otorga el permiso x recibido como input al usuario y'''
-
-        try:
-            perm_set = self.permissions[username]
-        except KeyError:
-            raise PermissionError("Permission does not exist")
-        else:
-            if username not in self.authenticator.users:
-                raise auth.InvalidUsername(username)
-            perm_set.add(username)
-
-    def check_permission(self, perm_name, username):
-        if not self.authenticator.is_logged_in(username):
-            raise NotLoggedInError(username)
-        try:
-            perm_set = self.permissions[perm_name]
-        except KeyError:
-            raise PermissionError("Permission does not exist")
-        else:
-            if username not in perm_set:
-                raise NotPermittedError(username)
+    def login(self):
+        logged_in = False
+        while not logged_in:
+            username = input("username: ")
+            password = input("password: ")
+            try:
+                logged_in = auth.authenticator.login(username, password)
+            except auth.InvalidUsername:
+                print("Sorry, wrong username")
+            except auth.InvalidPassword:
+                print("Sorry, wrong password")
             else:
-                return True
+                self.username = username
+
+    def is_permitted(self, permission):
+        try:
+            auth.authorizor.check_permission(permission, self.username)
+        except auth.NotLoggedInError as e:
+            print("{} is not logged in".format(e.username))
+            return False
+        else:
+            return True
+
+    def test(self):
+        if self.is_permitted("test program"):
+            print("Testing program now...")
+
+    def change(self):
+        if self.is_permitted("change program"):
+            print("Changing program now...")
+
+    def quit(self):
+        raise SystemExit()
+
+    def menu(self):
+        try:
+           # answer = ""
+            while True:
+                print('''
+                    Please enter a command:
+                    \tlogin\tLogin
+                    \ttest\tTest the program
+                    \tchange\tChange the program
+                    \tquit\tQuit
+                    ''')
+                answer = input("Enter a command: ").lower()
+                try:
+                    command = self.menu_map[answer]
+                except KeyError:
+                    print("{} is not a valid command".format(answer))
+                # except ValueError:
+                #     print("{} is not a valid command".format(answer))
+                else:
+                    command()
+                # finally:
+                #     print("Thank you for testint the auth module")
+        finally:
+            print("Thank you for testint the auth module")
+
+Editor().menu()
 
 
-class PermissionError(Exception):
-    pass
+# auth.authenticator.add_users("joe", "joepassword")
+# auth.authenticator.login("joe", "joepassword")
 
+# auth.authorizor.add_permission("test program")
 
-class NotLoggedInError(Exception):
-    pass
-
-
-class NotPermittedError(Exception):
-    pass
-
-
-if __name__ == "__main__":
-
-    authorizor = Authorizor(auth.authenticator)
+# auth.authorizor.add_permission("change program")
+# auth.authorizor.permit_user("test program", 'joe')
