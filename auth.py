@@ -74,5 +74,5 @@ class Authenticator:
             return False
 
 
-if __name__ == '__main__':
-    authenticator = Authenticator()
+# if __name__ == '__main__':
+authenticator = Authenticator()

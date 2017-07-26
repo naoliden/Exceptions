@@ -1,3 +1,6 @@
+import auth
+
+
 class Authorizor:
     def __init__(self, authenticator):
         self.authenticator = authenticator
@@ -23,10 +26,10 @@ class Authorizor:
             raise PermissionError("Permission does not exist")
         else:
             if username not in self.authenticator.users:
-                raise InvalidUsername(username)
+                raise auth.InvalidUsername(username)
             perm_set.add(username)
 
-    def check_permission(self, prem_name, username):
+    def check_permission(self, perm_name, username):
         if not self.authenticator.is_logged_in(username):
             raise NotLoggedInError(username)
         try:
@@ -54,4 +57,4 @@ class NotPermittedError(Exception):
 
 if __name__ == "__main__":
 
-    authorizor = Authorizor(authenticator)
+    authorizor = Authorizor(auth.authenticator)
